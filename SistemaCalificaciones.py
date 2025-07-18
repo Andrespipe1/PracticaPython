@@ -6,14 +6,6 @@ Este módulo implementa un sistema completo de gestión de calificaciones
 que permite a los docentes registrar, ordenar y buscar calificaciones
 de estudiantes utilizando diversos algoritmos.
 
-Integrantes:
-- Adria Ramos
-- Andres Tufiño  
-- Christian Marquez
-- Richard Robalino
-- Sebastian Chico
-
-Fecha: 2024
 """
 
 import os
