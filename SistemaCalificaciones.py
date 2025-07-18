@@ -1,62 +1,196 @@
-#INTEGRANTES: ADRIA RAMOS | ANDRES TUFIÑO | CHRISTIAN MARQUEZ | RICHARD ROBALINO | SEBASTIAN CHICO 
+"""
+Sistema de Gestión de Calificaciones
+====================================
 
-from os import system
+Este módulo implementa un sistema completo de gestión de calificaciones
+que permite a los docentes registrar, ordenar y buscar calificaciones
+de estudiantes utilizando diversos algoritmos.
+
+Integrantes:
+- Adria Ramos
+- Andres Tufiño  
+- Christian Marquez
+- Richard Robalino
+- Sebastian Chico
+
+Fecha: 2024
+"""
+
+import os
 import time
+from typing import List, Tuple, Optional
 
-datosProfesores=[[],[],[]]
-datosAlumnos = [[], [], []]
-
-credenciales_docentes = {
+# Configuración global
+CREDENCIALES_DOCENTES = {
     "docente@esfot.edu.ec": "Docente2023*"
 }
 
-def login():
+# Estructuras de datos globales
+datos_profesores = [[], [], []]  # [nombres, apellidos, materias]
+datos_alumnos = [[], [], []]     # [nombres, apellidos, calificaciones]
 
-    print("=== Sistema de Gestión de Calificaciones ===")
-    usuario = input("Ingrese su usuario: ")
-    contraseña = input("Ingrese su contraseña: ")
 
+def limpiar_pantalla():
+    """Limpia la pantalla del terminal."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+
+def validar_nota(nota: str) -> float:
+    """
+    Valida que la nota ingresada esté en el rango correcto (0-20).
     
-    if usuario in credenciales_docentes and credenciales_docentes[usuario] == contraseña:
-        print("Inicio de sesión exitoso.")
-        time.sleep(2)
-        return True
-    else:
-        print("Credenciales incorrectas. Inténtelo de nuevo.")
-        time.sleep(2)
-        return False
-
-def menuOpciones():
-  print("¿Que accion desea realizar?")
-  print("1) Registrar Datos profesor y alumnos")
-  print("2) Ordenar Calificaciones")
-  print("3) Buscar Calificaciones")
-  print("4) Salir")
-  return int(input("Ingrese la opcion: "))
-
-
-def ingresarDatosProfe():
-  print("Ingrese los datos del Profesor: ")
-  nombreProfe=input("- Nombre: ")
-  apellidoProfe=input("- Apellido: ")
-  materiaProfe=input("- Materia: ")
-  datosProfesores[0].append(nombreProfe)
-  datosProfesores[1].append(apellidoProfe)
-  datosProfesores[2].append(materiaProfe)
+    Args:
+        nota: String con la nota a validar
+        
+    Returns:
+        float: La nota validada
+        
+    Raises:
+        ValueError: Si la nota no es válida
+    """
+    try:
+        nota_float = float(nota)
+        if 0 <= nota_float <= 20:
+            return nota_float
+        else:
+            raise ValueError("La nota debe estar entre 0 y 20")
+    except ValueError as e:
+        if "La nota debe estar entre" in str(e):
+            raise e
+        else:
+            raise ValueError("Por favor ingrese un número válido")
 
 
-def ingresarDatosAlumno(cantidadAlumnos):
-  for i in range(cantidadAlumnos):
-    print(f"Ingrese los datos del Alumno {i+1}: ")
-    nombreAlumno = input("- Nombre: ")
-    apellidoAlumno = input("- Apellido: ")
-    notaAlumno = float(input("- Nota: "))
-    datosAlumnos[0].append(nombreAlumno)
-    datosAlumnos[1].append(apellidoAlumno)
-    datosAlumnos[2].append(notaAlumno)
+def login() -> bool:
+    """
+    Sistema de autenticación para docentes.
+    
+    Returns:
+        bool: True si el login es exitoso, False en caso contrario
+    """
+    print("=" * 50)
+    print("    Sistema de Gestión de Calificaciones")
+    print("=" * 50)
+    
+    while True:
+        usuario = input("Usuario: ").strip()
+        contraseña = input("Contraseña: ").strip()
+        
+        if usuario in CREDENCIALES_DOCENTES and CREDENCIALES_DOCENTES[usuario] == contraseña:
+            print("✅ Inicio de sesión exitoso.")
+            time.sleep(1.5)
+            return True
+        else:
+            print("❌ Credenciales incorrectas. Inténtelo de nuevo.")
+            time.sleep(1.5)
+            limpiar_pantalla()
 
 
-def calificacion_texto(nota):
+def mostrar_menu_principal() -> int:
+    """
+    Muestra el menú principal y obtiene la opción del usuario.
+    
+    Returns:
+        int: Opción seleccionada por el usuario
+    """
+    print("\n" + "=" * 40)
+    print("           MENÚ PRINCIPAL")
+    print("=" * 40)
+    print("1. Registrar Datos (Profesor y Alumnos)")
+    print("2. Ordenar Calificaciones")
+    print("3. Buscar Calificaciones")
+    print("4. Salir")
+    print("=" * 40)
+    
+    while True:
+        try:
+            opcion = int(input("Seleccione una opción (1-4): "))
+            if 1 <= opcion <= 4:
+                return opcion
+            else:
+                print("❌ Por favor ingrese una opción válida (1-4)")
+        except ValueError:
+            print("❌ Por favor ingrese un número válido")
+
+
+def ingresar_datos_profesor():
+    """Registra los datos del profesor en el sistema."""
+    print("\n" + "=" * 40)
+    print("      REGISTRO DE DATOS DEL PROFESOR")
+    print("=" * 40)
+    
+    nombre = input("Nombre: ").strip()
+    while not nombre:
+        print("❌ El nombre no puede estar vacío")
+        nombre = input("Nombre: ").strip()
+    
+    apellido = input("Apellido: ").strip()
+    while not apellido:
+        print("❌ El apellido no puede estar vacío")
+        apellido = input("Apellido: ").strip()
+    
+    materia = input("Materia: ").strip()
+    while not materia:
+        print("❌ La materia no puede estar vacía")
+        materia = input("Materia: ").strip()
+    
+    # Almacenar datos
+    datos_profesores[0].append(nombre)
+    datos_profesores[1].append(apellido)
+    datos_profesores[2].append(materia)
+    
+    print(f"✅ Profesor {nombre} {apellido} registrado exitosamente")
+
+
+def ingresar_datos_alumnos(cantidad: int):
+    """
+    Registra los datos de múltiples alumnos.
+    
+    Args:
+        cantidad: Número de alumnos a registrar
+    """
+    print(f"\n" + "=" * 40)
+    print(f"      REGISTRO DE {cantidad} ALUMNOS")
+    print("=" * 40)
+    
+    for i in range(cantidad):
+        print(f"\n--- Alumno {i+1}/{cantidad} ---")
+        
+        nombre = input("Nombre: ").strip()
+        while not nombre:
+            print("❌ El nombre no puede estar vacío")
+            nombre = input("Nombre: ").strip()
+        
+        apellido = input("Apellido: ").strip()
+        while not apellido:
+            print("❌ El apellido no puede estar vacío")
+            apellido = input("Apellido: ").strip()
+        
+        while True:
+            try:
+                nota = validar_nota(input("Nota (0-20): "))
+                break
+            except ValueError as e:
+                print(f"❌ {e}")
+        
+        # Almacenar datos
+        datos_alumnos[0].append(nombre)
+        datos_alumnos[1].append(apellido)
+        datos_alumnos[2].append(nota)
+        
+        print(f"✅ Alumno {nombre} {apellido} registrado con nota {nota}")
+
+
+def clasificar_calificacion(nota: float) -> str:
+    """
+    Clasifica una calificación según el sistema de puntuación.
+    
+    Args:
+        nota: Calificación a clasificar
+        
+    Returns:
+        str: Clasificación de la nota
+    """
     if 0 <= nota <= 8:
         return "Reprobado"
     elif 9 <= nota <= 13:
@@ -66,285 +200,574 @@ def calificacion_texto(nota):
     else:
         return "Nota fuera de rango"
 
-def archivarTXT():
-  aprobados = []
-  suspendidos = []
-  reprobados = []
-  with open("calificaciones.txt", "a", encoding="utf-8") as archivo:
-    suma_notas = sum(datosAlumnos[2])
-    promedio_notas = suma_notas / len(datosAlumnos[2])
-    for i in range(len(datosProfesores[0])):
-      archivo.write("\tESCUELA POLITECNICA NACIONAL\n\n")
-      archivo.write("Reporte de notas\n")
-      archivo.write("----------------------------------\n")
-      archivo.write(f"* Datos Profesor {i+1}\n")
-      archivo.write(f"* {datosProfesores[0][i]} {datosProfesores[1][i]}\n")
-      archivo.write(f"* Materia: {datosProfesores[2][i]}\n")
-      archivo.write("----------------------------------\n")
-    for i in range(len(datosAlumnos[0])):
-      archivo.write(f"*   {datosAlumnos[0][i]} {datosAlumnos[1][i]}\tNota: {datosAlumnos[2][i]} - {calificacion_texto(datosAlumnos[2][i])}\n")
+
+def generar_reporte_calificaciones():
+    """Genera un reporte completo de calificaciones en archivo de texto."""
+    if not datos_alumnos[0]:
+        print("❌ No hay datos de alumnos para generar el reporte")
+        return
+    
+    aprobados = []
+    suspendidos = []
+    reprobados = []
+    
+    # Clasificar estudiantes
+    for i, nota in enumerate(datos_alumnos[2]):
+        clasificacion = clasificar_calificacion(nota)
+        nombre_completo = f"{datos_alumnos[0][i]} {datos_alumnos[1][i]}"
         
-    for nota, nombre in zip(datosAlumnos[2], datosAlumnos[0]):
-      calif_texto = calificacion_texto(nota)
-      if calif_texto == "Aprobado":
-        aprobados.append(nombre)
-      elif calif_texto == "Suspenso":
-        suspendidos.append(nombre)
-      elif calif_texto == "Reprobado":
-        reprobados.append(nombre)
-    archivo.write("----------------------------------\n")
-    archivo.write(f"* Promedio de notas: {promedio_notas:.2f}\n")
-    archivo.write("----------------------------------\n")
-    archivo.write("* Estudiantes Aprobados:\n")
-    archivo.write(", ".join(aprobados) + "\n")
-    archivo.write("----------------------------------\n")
-    archivo.write("* Estudiantes Suspendidos:\n")
-    archivo.write(", ".join(suspendidos) + "\n")
-    archivo.write("----------------------------------\n")
-    archivo.write("* Estudiantes Reprobados:\n")
-    archivo.write(", ".join(reprobados) + "\n")
-    archivo.write("----------------------------------\n\n")
+        if clasificacion == "Aprobado":
+            aprobados.append(nombre_completo)
+        elif clasificacion == "Suspenso":
+            suspendidos.append(nombre_completo)
+        elif clasificacion == "Reprobado":
+            reprobados.append(nombre_completo)
+    
+    # Calcular estadísticas
+    suma_notas = sum(datos_alumnos[2])
+    promedio_notas = suma_notas / len(datos_alumnos[2])
+    
+    # Generar archivo
+    with open("calificaciones.txt", "w", encoding="utf-8") as archivo:
+        archivo.write("\t\tESCUELA POLITÉCNICA NACIONAL\n\n")
+        archivo.write("=" * 50 + "\n")
+        archivo.write("              REPORTE DE CALIFICACIONES\n")
+        archivo.write("=" * 50 + "\n\n")
+        
+        # Datos del profesor
+        for i in range(len(datos_profesores[0])):
+            archivo.write("DATOS DEL PROFESOR:\n")
+            archivo.write("-" * 30 + "\n")
+            archivo.write(f"Nombre: {datos_profesores[0][i]} {datos_profesores[1][i]}\n")
+            archivo.write(f"Materia: {datos_profesores[2][i]}\n")
+            archivo.write("-" * 30 + "\n\n")
+        
+        # Calificaciones de estudiantes
+        archivo.write("CALIFICACIONES DE ESTUDIANTES:\n")
+        archivo.write("-" * 40 + "\n")
+        for i in range(len(datos_alumnos[0])):
+            nombre = datos_alumnos[0][i]
+            apellido = datos_alumnos[1][i]
+            nota = datos_alumnos[2][i]
+            clasificacion = clasificar_calificacion(nota)
+            archivo.write(f"{nombre} {apellido}: {nota} - {clasificacion}\n")
+        
+        archivo.write("-" * 40 + "\n\n")
+        
+        # Estadísticas
+        archivo.write("ESTADÍSTICAS:\n")
+        archivo.write("-" * 20 + "\n")
+        archivo.write(f"Promedio de notas: {promedio_notas:.2f}\n")
+        archivo.write(f"Total de estudiantes: {len(datos_alumnos[0])}\n")
+        archivo.write(f"Aprobados: {len(aprobados)}\n")
+        archivo.write(f"Suspendidos: {len(suspendidos)}\n")
+        archivo.write(f"Reprobados: {len(reprobados)}\n")
+        archivo.write("-" * 20 + "\n\n")
+        
+        # Listas detalladas
+        if aprobados:
+            archivo.write("ESTUDIANTES APROBADOS:\n")
+            archivo.write("-" * 25 + "\n")
+            archivo.write(", ".join(aprobados) + "\n\n")
+        
+        if suspendidos:
+            archivo.write("ESTUDIANTES SUSPENDIDOS:\n")
+            archivo.write("-" * 25 + "\n")
+            archivo.write(", ".join(suspendidos) + "\n\n")
+        
+        if reprobados:
+            archivo.write("ESTUDIANTES REPROBADOS:\n")
+            archivo.write("-" * 25 + "\n")
+            archivo.write(", ".join(reprobados) + "\n\n")
+    
+    print("💾 Guardando datos...")
+    time.sleep(1)
+    print("✅ Archivo 'calificaciones.txt' generado exitosamente")
 
-  print("Guardando datos....")
-  time.sleep(1)
-  print("\n---- Archivo generado exitosamente ------\n")
- 
-  
-def ord_burbuja(arreglo_calificaciones, arreglo_nombres):
-  n = len(arreglo_calificaciones)
-  for i in range(n-1):
-    for j in range(n-1-i): 
-      if arreglo_calificaciones[j] > arreglo_calificaciones[j+1]:
-        arreglo_calificaciones[j], arreglo_calificaciones[j+1] = arreglo_calificaciones[j+1], arreglo_calificaciones[j]
-        arreglo_nombres[j], arreglo_nombres[j+1] = arreglo_nombres[j+1], arreglo_nombres[j]
-  return arreglo_calificaciones, arreglo_nombres
+
+# Algoritmos de ordenamiento
+def ordenamiento_burbuja(calificaciones: List[float], nombres: List[str]) -> Tuple[List[float], List[str]]:
+    """
+    Implementa el algoritmo de ordenamiento burbuja.
+    
+    Args:
+        calificaciones: Lista de calificaciones
+        nombres: Lista de nombres correspondientes
+        
+    Returns:
+        Tuple con las listas ordenadas
+    """
+    calificaciones = calificaciones.copy()
+    nombres = nombres.copy()
+    n = len(calificaciones)
+    
+    for i in range(n-1):
+        for j in range(n-1-i):
+            if calificaciones[j] > calificaciones[j+1]:
+                calificaciones[j], calificaciones[j+1] = calificaciones[j+1], calificaciones[j]
+                nombres[j], nombres[j+1] = nombres[j+1], nombres[j]
+    
+    return calificaciones, nombres
 
 
-def ord_seleccion(arreglo_calificaciones, arreglo_nombres):
-    n = len(arreglo_calificaciones)
+def ordenamiento_seleccion(calificaciones: List[float], nombres: List[str]) -> Tuple[List[float], List[str]]:
+    """
+    Implementa el algoritmo de ordenamiento por selección.
+    
+    Args:
+        calificaciones: Lista de calificaciones
+        nombres: Lista de nombres correspondientes
+        
+    Returns:
+        Tuple con las listas ordenadas
+    """
+    calificaciones = calificaciones.copy()
+    nombres = nombres.copy()
+    n = len(calificaciones)
+    
     for i in range(n-1):
         menor = i
         for j in range(i+1, n):
-            if arreglo_calificaciones[j] < arreglo_calificaciones[menor]:
+            if calificaciones[j] < calificaciones[menor]:
                 menor = j
-        arreglo_calificaciones[i], arreglo_calificaciones[menor] = arreglo_calificaciones[menor], arreglo_calificaciones[i]
-        arreglo_nombres[i], arreglo_nombres[menor] = arreglo_nombres[menor], arreglo_nombres[i]
-    return arreglo_calificaciones, arreglo_nombres
+        calificaciones[i], calificaciones[menor] = calificaciones[menor], calificaciones[i]
+        nombres[i], nombres[menor] = nombres[menor], nombres[i]
+    
+    return calificaciones, nombres
 
 
-def ord_insercion(arreglo_calificaciones, arreglo_nombres):
-    n = len(arreglo_calificaciones)
+def ordenamiento_insercion(calificaciones: List[float], nombres: List[str]) -> Tuple[List[float], List[str]]:
+    """
+    Implementa el algoritmo de ordenamiento por inserción.
+    
+    Args:
+        calificaciones: Lista de calificaciones
+        nombres: Lista de nombres correspondientes
+        
+    Returns:
+        Tuple con las listas ordenadas
+    """
+    calificaciones = calificaciones.copy()
+    nombres = nombres.copy()
+    n = len(calificaciones)
+    
     for i in range(1, n):
-        actual = arreglo_calificaciones[i]
-        actual_nombre = arreglo_nombres[i]
+        actual_cal = calificaciones[i]
+        actual_nom = nombres[i]
         j = i
-        while j > 0 and arreglo_calificaciones[j - 1] > actual:
-            arreglo_calificaciones[j] = arreglo_calificaciones[j - 1]
-            arreglo_nombres[j] = arreglo_nombres[j - 1]
+        while j > 0 and calificaciones[j-1] > actual_cal:
+            calificaciones[j] = calificaciones[j-1]
+            nombres[j] = nombres[j-1]
             j -= 1
-        arreglo_calificaciones[j] = actual
-        arreglo_nombres[j] = actual_nombre
-    return arreglo_calificaciones, arreglo_nombres
+        calificaciones[j] = actual_cal
+        nombres[j] = actual_nom
+    
+    return calificaciones, nombres
 
 
-def ord_quicksort(arreglo_calificaciones, arreglo_nombres):
-    if len(arreglo_calificaciones) <= 1:
-        return arreglo_calificaciones, arreglo_nombres
-    else:
-        pivot = arreglo_calificaciones[0]
-        left_calificaciones = [x for x in arreglo_calificaciones[1:] if x <= pivot]
-        left_nombres = [arreglo_nombres[i+1] for i, x in enumerate(arreglo_calificaciones[1:]) if x <= pivot]
-        right_calificaciones = [x for x in arreglo_calificaciones[1:] if x > pivot]
-        right_nombres = [arreglo_nombres[i+1] for i, x in enumerate(arreglo_calificaciones[1:]) if x > pivot]
-        left_calificaciones, left_nombres = ord_quicksort(left_calificaciones, left_nombres)
-        right_calificaciones, right_nombres = ord_quicksort(right_calificaciones, right_nombres)
-        return left_calificaciones + [pivot] + right_calificaciones, left_nombres + [arreglo_nombres[0]] + right_nombres
- 
+def ordenamiento_quicksort(calificaciones: List[float], nombres: List[str]) -> Tuple[List[float], List[str]]:
+    """
+    Implementa el algoritmo de ordenamiento QuickSort.
+    
+    Args:
+        calificaciones: Lista de calificaciones
+        nombres: Lista de nombres correspondientes
+        
+    Returns:
+        Tuple con las listas ordenadas
+    """
+    if len(calificaciones) <= 1:
+        return calificaciones, nombres
+    
+    pivot_cal = calificaciones[0]
+    pivot_nom = nombres[0]
+    
+    menores_cal = [cal for cal in calificaciones[1:] if cal <= pivot_cal]
+    menores_nom = [nombres[i+1] for i, cal in enumerate(calificaciones[1:]) if cal <= pivot_cal]
+    
+    mayores_cal = [cal for cal in calificaciones[1:] if cal > pivot_cal]
+    mayores_nom = [nombres[i+1] for i, cal in enumerate(calificaciones[1:]) if cal > pivot_cal]
+    
+    menores_cal, menores_nom = ordenamiento_quicksort(menores_cal, menores_nom)
+    mayores_cal, mayores_nom = ordenamiento_quicksort(mayores_cal, mayores_nom)
+    
+    return menores_cal + [pivot_cal] + mayores_cal, menores_nom + [pivot_nom] + mayores_nom
 
-def ord_merge(left_calificaciones, left_nombres, right_calificaciones, right_nombres):
-    result_calificaciones = []
-    result_nombres = []
+
+def merge(left_cal: List[float], left_nom: List[str], 
+          right_cal: List[float], right_nom: List[str]) -> Tuple[List[float], List[str]]:
+    """
+    Función auxiliar para el algoritmo MergeSort.
+    
+    Args:
+        left_cal: Calificaciones del lado izquierdo
+        left_nom: Nombres del lado izquierdo
+        right_cal: Calificaciones del lado derecho
+        right_nom: Nombres del lado derecho
+        
+    Returns:
+        Tuple con las listas fusionadas y ordenadas
+    """
+    result_cal = []
+    result_nom = []
     i = j = 0
-    while i < len(left_calificaciones) and j < len(right_calificaciones):
-        if left_calificaciones[i] < right_calificaciones[j]:
-            result_calificaciones.append(left_calificaciones[i])
-            result_nombres.append(left_nombres[i])
+    
+    while i < len(left_cal) and j < len(right_cal):
+        if left_cal[i] <= right_cal[j]:
+            result_cal.append(left_cal[i])
+            result_nom.append(left_nom[i])
             i += 1
         else:
-            result_calificaciones.append(right_calificaciones[j])
-            result_nombres.append(right_nombres[j])
+            result_cal.append(right_cal[j])
+            result_nom.append(right_nom[j])
             j += 1
-    result_calificaciones.extend(left_calificaciones[i:])
-    result_nombres.extend(left_nombres[i:])
-    result_calificaciones.extend(right_calificaciones[j:])
-    result_nombres.extend(right_nombres[j:])
-    return result_calificaciones, result_nombres
-
-def ord_mergesort(arreglo_calificaciones, arreglo_nombres):
-    if len(arreglo_calificaciones) <= 1:
-        return arreglo_calificaciones, arreglo_nombres
-    else:
-        mid = len(arreglo_calificaciones) // 2
-        left_calificaciones = arreglo_calificaciones[:mid]
-        left_nombres = arreglo_nombres[:mid]
-        right_calificaciones = arreglo_calificaciones[mid:]
-        right_nombres = arreglo_nombres[mid:]
-
-        left_calificaciones, left_nombres = ord_mergesort(left_calificaciones, left_nombres)
-        right_calificaciones, right_nombres = ord_mergesort(right_calificaciones, right_nombres)
-
-        return ord_merge(left_calificaciones, left_nombres, right_calificaciones, right_nombres)
+    
+    result_cal.extend(left_cal[i:])
+    result_nom.extend(left_nom[i:])
+    result_cal.extend(right_cal[j:])
+    result_nom.extend(right_nom[j:])
+    
+    return result_cal, result_nom
 
 
-def ordTXT(calificaciones, nombres, tipo_ordenamiento):
+def ordenamiento_mergesort(calificaciones: List[float], nombres: List[str]) -> Tuple[List[float], List[str]]:
+    """
+    Implementa el algoritmo de ordenamiento MergeSort.
+    
+    Args:
+        calificaciones: Lista de calificaciones
+        nombres: Lista de nombres correspondientes
+        
+    Returns:
+        Tuple con las listas ordenadas
+    """
+    if len(calificaciones) <= 1:
+        return calificaciones, nombres
+    
+    mid = len(calificaciones) // 2
+    left_cal = calificaciones[:mid]
+    left_nom = nombres[:mid]
+    right_cal = calificaciones[mid:]
+    right_nom = nombres[mid:]
+    
+    left_cal, left_nom = ordenamiento_mergesort(left_cal, left_nom)
+    right_cal, right_nom = ordenamiento_mergesort(right_cal, right_nom)
+    
+    return merge(left_cal, left_nom, right_cal, right_nom)
+
+
+def mostrar_menu_ordenamiento() -> int:
+    """
+    Muestra el menú de algoritmos de ordenamiento.
+    
+    Returns:
+        int: Opción seleccionada
+    """
+    print("\n" + "=" * 40)
+    print("      ALGORITMOS DE ORDENAMIENTO")
+    print("=" * 40)
+    print("1. Burbuja (Bubble Sort)")
+    print("2. Selección (Selection Sort)")
+    print("3. Inserción (Insertion Sort)")
+    print("4. Merge Sort")
+    print("5. Quick Sort")
+    print("6. Volver al menú principal")
+    print("=" * 40)
+    
+    while True:
+        try:
+            opcion = int(input("Seleccione un algoritmo (1-6): "))
+            if 1 <= opcion <= 6:
+                return opcion
+            else:
+                print("❌ Por favor ingrese una opción válida (1-6)")
+        except ValueError:
+            print("❌ Por favor ingrese un número válido")
+
+
+def ordenar_calificaciones():
+    """Función principal para ordenar calificaciones."""
+    if not datos_alumnos[0]:
+        print("❌ No hay datos de alumnos para ordenar")
+        return
+    
+    opcion = mostrar_menu_ordenamiento()
+    
+    if opcion == 6:
+        return
+    
+    # Seleccionar algoritmo
+    algoritmos = {
+        1: ("Burbuja", ordenamiento_burbuja),
+        2: ("Selección", ordenamiento_seleccion),
+        3: ("Inserción", ordenamiento_insercion),
+        4: ("Merge Sort", ordenamiento_mergesort),
+        5: ("Quick Sort", ordenamiento_quicksort)
+    }
+    
+    nombre_algoritmo, funcion_algoritmo = algoritmos[opcion]
+    
+    print(f"\n🔄 Ordenando con algoritmo: {nombre_algoritmo}")
+    calificaciones_ordenadas, nombres_ordenados = funcion_algoritmo(
+        datos_alumnos[2], datos_alumnos[0]
+    )
+    
+    # Mostrar resultados
+    print(f"\n📊 Resultados ordenados ({nombre_algoritmo}):")
+    print("-" * 40)
+    for i, (nombre, calificacion) in enumerate(zip(nombres_ordenados, calificaciones_ordenadas)):
+        print(f"{i+1:2d}. {nombre}: {calificacion}")
+    
+    # Generar archivo
     with open("ordenamiento.txt", "w", encoding="utf-8") as archivo:
-        archivo.write("\t\tESCUELA POLITECNICA NACIONAL\n\n")
-        archivo.write("-------------Calificaciones Ordenadas-------------\n")
-        archivo.write(f"Tipo de ordenamiento: {tipo_ordenamiento}\n")
-        for calificacion, nombre in zip(calificaciones, nombres):
-            archivo.write(f'{nombre}: {calificacion}\n')
-        archivo.write("--------------------------------------------------\n\n")    
-    print("Guardando datos....")
-    time.sleep(1)
-    print("\n---- Archivo generado exitosamente ------\n")
+        archivo.write("\t\tESCUELA POLITÉCNICA NACIONAL\n\n")
+        archivo.write("=" * 50 + "\n")
+        archivo.write("        CALIFICACIONES ORDENADAS\n")
+        archivo.write("=" * 50 + "\n\n")
+        archivo.write(f"Algoritmo utilizado: {nombre_algoritmo}\n")
+        archivo.write("-" * 40 + "\n")
+        for i, (nombre, calificacion) in enumerate(zip(nombres_ordenados, calificaciones_ordenadas)):
+            archivo.write(f"{i+1:2d}. {nombre}: {calificacion}\n")
+        archivo.write("-" * 40 + "\n")
+    
+    print(f"\n💾 Archivo 'ordenamiento.txt' generado exitosamente")
 
 
-def ordenarCalificaciones(listaCalificaciones, listaNombres):
-    print("Por qué método quiere ordenar las calificaciones?")
-    print("1) Burbuja")
-    print("2) Seleccion")
-    print("3) Insercion")
-    print("4) Mergesort")
-    print("5) Quicksort")
-    print("6) Salir")
-    opcion = int(input("Ingrese la opcion: "))
-    tipo_ordenamiento = ""
-    if opcion == 1:
-        tipo_ordenamiento = "Burbuja"
-        listaCalificaciones, listaNombres = ord_burbuja(listaCalificaciones, listaNombres)
-    elif opcion == 2:
-        tipo_ordenamiento = "Seleccion"
-        listaCalificaciones, listaNombres = ord_seleccion(listaCalificaciones, listaNombres)
-    elif opcion == 3:
-        tipo_ordenamiento = "Insercion"
-        listaCalificaciones, listaNombres = ord_insercion(listaCalificaciones, listaNombres)
-    elif opcion == 4:
-        tipo_ordenamiento = "Mergesort"
-        listaCalificaciones, listaNombres = ord_mergesort(listaCalificaciones, listaNombres)
-    elif opcion == 5:
-        tipo_ordenamiento = "Quicksort"
-        listaCalificaciones, listaNombres = ord_quicksort(listaCalificaciones, listaNombres)
-    elif opcion == 6:
-        print("Saliendo del programa")
+# Algoritmos de búsqueda
+def busqueda_lineal(lista: List[float], valor: float) -> Optional[int]:
+    """
+    Implementa búsqueda lineal.
+    
+    Args:
+        lista: Lista donde buscar
+        valor: Valor a buscar
+        
+    Returns:
+        int: Índice del valor encontrado, None si no se encuentra
+    """
+    for i, elemento in enumerate(lista):
+        if elemento == valor:
+            return i
+    return None
+
+
+def busqueda_binaria(lista: List[float], valor: float) -> Optional[int]:
+    """
+    Implementa búsqueda binaria (requiere lista ordenada).
+    
+    Args:
+        lista: Lista ordenada donde buscar
+        valor: Valor a buscar
+        
+    Returns:
+        int: Índice del valor encontrado, None si no se encuentra
+    """
+    izquierda, derecha = 0, len(lista) - 1
+    
+    while izquierda <= derecha:
+        medio = (izquierda + derecha) // 2
+        if lista[medio] == valor:
+            return medio
+        elif lista[medio] < valor:
+            izquierda = medio + 1
+        else:
+            derecha = medio - 1
+    
+    return None
+
+
+def busqueda_interpolacion(lista: List[float], valor: float) -> Optional[int]:
+    """
+    Implementa búsqueda por interpolación (requiere lista ordenada).
+    
+    Args:
+        lista: Lista ordenada donde buscar
+        valor: Valor a buscar
+        
+    Returns:
+        int: Índice del valor encontrado, None si no se encuentra
+    """
+    izquierda, derecha = 0, len(lista) - 1
+    
+    while (izquierda <= derecha and 
+           valor >= lista[izquierda] and 
+           valor <= lista[derecha]):
+        
+        if izquierda == derecha:
+            if lista[izquierda] == valor:
+                return izquierda
+            return None
+        
+        pos = izquierda + int(((valor - lista[izquierda]) * 
+                              (derecha - izquierda)) / 
+                              (lista[derecha] - lista[izquierda]))
+        
+        if lista[pos] == valor:
+            return pos
+        elif lista[pos] < valor:
+            izquierda = pos + 1
+        else:
+            derecha = pos - 1
+    
+    return None
+
+
+def mostrar_menu_busqueda() -> int:
+    """
+    Muestra el menú de algoritmos de búsqueda.
+    
+    Returns:
+        int: Opción seleccionada
+    """
+    print("\n" + "=" * 40)
+    print("      ALGORITMOS DE BÚSQUEDA")
+    print("=" * 40)
+    print("1. Búsqueda Lineal")
+    print("2. Búsqueda Binaria")
+    print("3. Búsqueda por Interpolación")
+    print("4. Volver al menú principal")
+    print("=" * 40)
+    
+    while True:
+        try:
+            opcion = int(input("Seleccione un algoritmo (1-4): "))
+            if 1 <= opcion <= 4:
+                return opcion
+            else:
+                print("❌ Por favor ingrese una opción válida (1-4)")
+        except ValueError:
+            print("❌ Por favor ingrese un número válido")
+
+
+def buscar_calificacion():
+    """Función principal para buscar calificaciones."""
+    if not datos_alumnos[0]:
+        print("❌ No hay datos de alumnos para buscar")
+        return
+    
+    # Obtener calificación a buscar
+    while True:
+        try:
+            calificacion = validar_nota(input("Ingrese la calificación a buscar (0-20): "))
+            break
+        except ValueError as e:
+            print(f"❌ {e}")
+    
+    opcion = mostrar_menu_busqueda()
+    
+    if opcion == 4:
+        return
+    
+    # Seleccionar algoritmo
+    algoritmos = {
+        1: ("Búsqueda Lineal", busqueda_lineal),
+        2: ("Búsqueda Binaria", busqueda_binaria),
+        3: ("Búsqueda por Interpolación", busqueda_interpolacion)
+    }
+    
+    nombre_algoritmo, funcion_busqueda = algoritmos[opcion]
+    
+    # Para búsqueda binaria e interpolación, necesitamos lista ordenada
+    if opcion in [2, 3]:
+        calificaciones_ordenadas = sorted(datos_alumnos[2])
+        resultado = funcion_busqueda(calificaciones_ordenadas, calificacion)
     else:
-        print("Opcion invalida")
-
-    if opcion in [1, 2, 3, 4, 5]:
-        ordTXT(listaCalificaciones, listaNombres, tipo_ordenamiento)
-
-
-def busqueda_lineal(lista, valor):
-  for i in range(len(lista)):
-    if lista[i] == valor:
-      return i
-  return -1
-
-
-def busqueda_binaria(lista, valor):
-  izquierda, derecha = 0, len(lista) - 1
-  while izquierda <= derecha:
-      medio = (izquierda + derecha) // 2
-      if lista[medio] == valor:
-          return medio
-      elif lista[medio] < valor:
-          izquierda = medio + 1
-      else:
-          derecha = medio - 1
-  return -1
-
-
-def busqueda_interpolacion(lista, valor):
-  izquierda, derecha = 0, len(lista) - 1
-  while izquierda <= derecha and valor >= lista[izquierda] and valor <= lista[derecha]:
-      pos = izquierda + ((valor - lista[izquierda]) * (derecha - izquierda)) // (lista[derecha] - lista[izquierda])
-      if lista[pos] == valor:
-          return pos
-      if lista[pos] < valor:
-          izquierda = pos + 1
-      else:
-          derecha = pos - 1
-  return -1
-
-
-def buscarCalificacion():
-  calificacion = float(input("Ingrese la calificación a buscar: "))
-  algoritmo = input("Seleccione el algoritmo de búsqueda\n\t1) lineal\n\t2) binaria\n\t3) interpolación)\n")
-
-  if algoritmo.lower() == "1":
-      busqueda_lineal(datosAlumnos[2], calificacion)
-      busquedaTXT(calificacion,algoritmo)
-  elif algoritmo.lower() == "2":
-      busqueda_binaria(datosAlumnos[2], calificacion)
-      busquedaTXT(calificacion,algoritmo)
-  elif algoritmo.lower() == "3":
-      busqueda_interpolacion(datosAlumnos[2], calificacion)
-      busquedaTXT(calificacion,algoritmo)
-  else:
-      print("Algoritmo no reconocido")
-      return
-
-
-def busquedaTXT(calificacion,algoritmo):
-  archivo = open("búsqueda.txt", "a", encoding="utf-8")
-  archivo.write("---------------------------\n")
-  archivo.write("\tCOLEGIO o UNIVERSIDAD Epn\n\n")
-  archivo.write("Búsqueda de Calificaciones\n")
-  archivo.write(f"ALGORITMO: {algoritmo}\n")
-  archivo.write(f"\tLa calificación a buscar fue de: {calificacion }\n")
-  
-  if calificacion in datosAlumnos[2]:
-    index = datosAlumnos[2].index(calificacion)
-    archivo.write(f"\n\tCorresponde al estudiante: {datosAlumnos[0][index]} {datosAlumnos[1][index]}\n")
-    archivo.write(f"\tNombre de profesor: {datosProfesores[0][0]} {datosProfesores[1][0]}\n")
-    archivo.write("--------------------------------------------\n")
-    print(f"\tLa calificación a buscar fue de: {calificacion }")
-    print(f"\tCorresponde al estudiante: {datosAlumnos[0][index]} {datosAlumnos[1][index]}")
-    print(f"\tNombre de profesor: {datosProfesores[0][0]} {datosProfesores[1][0]}")
-  else:
-    archivo.write("La calificación no se encontró en los datos.\n")
-    print("La calificación no se encontró en los datos.\n")
-
-  archivo.close()
-  print("Resultados almacenados en el archivo búsqueda.txt\n")
+        resultado = funcion_busqueda(datos_alumnos[2], calificacion)
+    
+    # Mostrar resultados
+    print(f"\n🔍 Buscando calificación {calificacion} con {nombre_algoritmo}")
+    
+    if resultado is not None:
+        if opcion in [2, 3]:
+            # Para algoritmos que usan lista ordenada, buscar en lista original
+            indices_originales = [i for i, cal in enumerate(datos_alumnos[2]) if cal == calificacion]
+            if indices_originales:
+                for idx in indices_originales:
+                    nombre = datos_alumnos[0][idx]
+                    apellido = datos_alumnos[1][idx]
+                    print(f"✅ Encontrado: {nombre} {apellido} - {calificacion}")
+        else:
+            nombre = datos_alumnos[0][resultado]
+            apellido = datos_alumnos[1][resultado]
+            print(f"✅ Encontrado: {nombre} {apellido} - {calificacion}")
+    else:
+        print("❌ Calificación no encontrada")
+    
+    # Generar archivo de búsqueda
+    with open("búsqueda.txt", "w", encoding="utf-8") as archivo:
+        archivo.write("\t\tESCUELA POLITÉCNICA NACIONAL\n\n")
+        archivo.write("=" * 50 + "\n")
+        archivo.write("           BÚSQUEDA DE CALIFICACIONES\n")
+        archivo.write("=" * 50 + "\n\n")
+        archivo.write(f"Algoritmo utilizado: {nombre_algoritmo}\n")
+        archivo.write(f"Calificación buscada: {calificacion}\n")
+        archivo.write("-" * 40 + "\n")
+        
+        if resultado is not None:
+            if opcion in [2, 3]:
+                indices_originales = [i for i, cal in enumerate(datos_alumnos[2]) if cal == calificacion]
+                for idx in indices_originales:
+                    nombre = datos_alumnos[0][idx]
+                    apellido = datos_alumnos[1][idx]
+                    archivo.write(f"✅ {nombre} {apellido}: {calificacion}\n")
+            else:
+                nombre = datos_alumnos[0][resultado]
+                apellido = datos_alumnos[1][resultado]
+                archivo.write(f"✅ {nombre} {apellido}: {calificacion}\n")
+        else:
+            archivo.write("❌ Calificación no encontrada\n")
+        
+        archivo.write("-" * 40 + "\n")
+    
+    print(f"\n💾 Archivo 'búsqueda.txt' generado exitosamente")
 
 
 def main():
-  while not login():
-        pass 
-  system("cls")
-  print("---- Bienvenido al sistema de notas -----")
-  opcion = menuOpciones()
-  while opcion != 4:
-    if opcion == 1:
-      system("cls")
-      ingresarDatosProfe()
-      cantidad_alumnos = int(input("Ingrese la cantidad de alumnos: "))
-      ingresarDatosAlumno(cantidad_alumnos)
-      archivarTXT()
-      opcion = menuOpciones()
-    if opcion == 2:
-      system("cls")
-      ordenarCalificaciones(datosAlumnos[2], datosAlumnos[0])
-      opcion = menuOpciones()
-    if opcion == 3:
-      system("cls")
-      buscarCalificacion()
-      opcion=menuOpciones()
-    if opcion == 4:
-      print("¡Gracias por usar nuestro sistema!")
-      exit()
-    else:
-      print("Opción no valida")
-      opcion=menuOpciones()
+    """Función principal del programa."""
+    # Autenticación
+    if not login():
+        print("❌ No se pudo autenticar. Saliendo del programa.")
+        return
+    
+    limpiar_pantalla()
+    print("🎓 ¡Bienvenido al Sistema de Gestión de Calificaciones!")
+    
+    while True:
+        opcion = mostrar_menu_principal()
+        
+        if opcion == 1:
+            limpiar_pantalla()
+            ingresar_datos_profesor()
+            
+            while True:
+                try:
+                    cantidad = int(input("\nIngrese la cantidad de alumnos: "))
+                    if cantidad > 0:
+                        break
+                    else:
+                        print("❌ La cantidad debe ser mayor a 0")
+                except ValueError:
+                    print("❌ Por favor ingrese un número válido")
+            
+            ingresar_datos_alumnos(cantidad)
+            generar_reporte_calificaciones()
+            
+        elif opcion == 2:
+            limpiar_pantalla()
+            ordenar_calificaciones()
+            
+        elif opcion == 3:
+            limpiar_pantalla()
+            buscar_calificacion()
+            
+        elif opcion == 4:
+            print("\n👋 ¡Gracias por usar nuestro sistema!")
+            print("Desarrollado con ❤️ por estudiantes de la EPN")
+            break
+        
+        input("\nPresione Enter para continuar...")
+        limpiar_pantalla()
 
-main()
+
+if __name__ == "__main__":
+    main()
